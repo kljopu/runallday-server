@@ -12,7 +12,6 @@ export class AuthResolver {
     @Mutation(returns => AuthLoginOutput)
     async login(@Args('input') input: AuthLoginInput): Promise<any> {
         const { email, password } = input
-        const user = await this.service.validateUser(email, password)
-        return this.service.login(user)
+        return this.service.validateUser(email, password)
     }
 }

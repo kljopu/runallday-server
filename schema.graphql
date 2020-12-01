@@ -2,14 +2,17 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Board {
+type Record {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
-  title: String!
-  content: String!
-  author: User!
+  runType: String!
+  totalDistance: Float!
+  totalPace: Float!
+  consumedCalories: Float!
+  runner: Record!
+  recordPerKm: [RecordsPerKillometer!]!
 }
 
 """
@@ -17,15 +20,29 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type RecordsPerKillometer {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  distance: Float!
+  pace: DateTime!
+  difference: DateTime!
+  finalRecord: Record!
+}
+
 type User {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
   name: String!
+  phoneNumber: Float!
+  isVerified: Boolean!
   email: String!
+  profileImage: String!
   password: String!
-  boards: [Board!]!
+  records: [Record!]!
 }
 
 type CommonOutPut {
@@ -48,30 +65,15 @@ type CreateUserOutput {
   ok: Boolean!
 }
 
-type BoardOutput {
-  boards: [Board!]
-}
-
-type BoardDefaultOutput {
-  error: String
-  ok: Boolean!
-  boards: Board!
-}
-
 type Query {
   hello(data: String): String!
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): CreateUserOutput!
-  getMyProfile(input: UserProfileInput!): UserOutPut!
+  getMyProfile: UserOutPut!
   editMyProfile(input: UserProfileInput!): UserOutPut!
   deleteUser: CommonOutPut!
-  createBoard(input: BoardCreateInput!): BoardDefaultOutput!
-  getAllBoards: BoardOutput!
-  editMyBoard(input: BoardEditInput!): BoardDefaultOutput!
-  deleteMyBoard(boardId: Float!): CommonOutPut!
-  getBoards: BoardOutput!
   login(input: AuthLoginInput!): AuthLoginOutput!
 }
 
@@ -79,22 +81,12 @@ input CreateUserInput {
   name: String!
   email: String!
   password: String!
+  profileImage: String
 }
 
 input UserProfileInput {
   email: String
   name: String
-}
-
-input BoardCreateInput {
-  title: String!
-  content: String!
-}
-
-input BoardEditInput {
-  id: Float!
-  title: String!
-  content: String!
 }
 
 input AuthLoginInput {
