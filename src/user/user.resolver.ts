@@ -23,27 +23,25 @@ export class UserResolver {
     @UseGuards(JwtAuthGuard)
     @Mutation(returns => UserOutPut)
     async getMyProfile(
-        @Args('input') input: UserProfileInput,
-        @GqlUser() user: any
+        @GqlUser() user: User
     ): Promise<any> {
-        const { email } = input
-        return this.userService.getProfile(email)
+        return this.userService.getProfile(user)
     }
 
     @UseGuards(JwtAuthGuard)
     @Mutation(returns => UserOutPut)
     async editMyProfile(
         @Args('input') input: UserProfileInput,
-        @GqlUser() user: any
+        @GqlUser() user: User
     ): Promise<UserOutPut> {
-        return this.userService.editProfile(input, user.userId)
+        return this.userService.editProfile(input, user)
     }
 
     @UseGuards(JwtAuthGuard)
     @Mutation(returns => CommonOutPut)
     async deleteUser(
-        @GqlUser() user: any
+        @GqlUser() user: User
     ): Promise<CommonOutPut> {
-        return this.userService.deleteUser(user.userId)
+        return this.userService.deleteUser(user)
     }
 }

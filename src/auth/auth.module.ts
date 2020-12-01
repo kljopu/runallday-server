@@ -10,7 +10,7 @@ import { JwtStrategy } from "./jwt.strategy"
 import { UserService } from "src/user/user.service"
 import { JwtAuthGuard } from "./jwt-auth.guard"
 import { LocalAuthGuard } from "./local-auth.guard"
-import { BoardService } from "src/board/board.service"
+// import { BoardService } from "src/Record/record.service"
 
 @Module({
     imports: [

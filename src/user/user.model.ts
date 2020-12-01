@@ -25,7 +25,7 @@ export class User extends BaseModel {
   @Column({ unique: true })
   @Field(type => String)
   @IsEmail()
-  email: string
+  email!: string
 
   @Column({ default: null })
   @Field(type => String)
@@ -41,7 +41,7 @@ export class User extends BaseModel {
     (record) => record.runner,
   )
   @Field((_) => [Record])
-  records!: Record[];
+  records: Record[];
 
   @BeforeInsert()
   @BeforeUpdate()

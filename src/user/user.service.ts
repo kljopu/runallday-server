@@ -16,19 +16,22 @@ export class UserService {
   ) {
     console.log('use this repository user', User);
   }
-  async createUser({ name, email, password }: CreateUserInput)
+  async createUser({ name, email, password, profileImage }: CreateUserInput)
     : Promise<CreateUserOutput> {
     try {
       const existingUser = await this.users.findOne({ email })
       if (existingUser) {
         return { ok: false, error: "USER ALREADY EXISTS" }
       }
+      if (profileImage === null) {
+        profileImage = "https://nuber-s3.s3.ap-northeast-2.amazonaws.com/default-avatar.png"
+      }
       const user = await this.users.save(
-        this.users.create({ email, password, name }),
+        this.users.create({ email, password, name, profileImage }),
       );
       return { ok: true }
     } catch (error) {
-      return { ok: false, error: "ACCOUNT CREATION FAILD" }
+      throw new InternalServerErrorException('INTERNAL SERVER ERROR', error.message)
     }
   }
 
@@ -83,21 +86,18 @@ export class UserService {
   }
 
   //Profile Options
-  async getProfile(email: any): Promise<UserOutPut> {
+  async getProfile(user: User): Promise<UserOutPut> {
     try {
-      const user = await this.findByEmail(email)
       return { user }
     } catch (error) {
       throw new InternalServerErrorException('INTERNAL SERVER ERROR')
     }
   }
 
-  async editProfile(data: UserProfileInput, userId: number): Promise<UserOutPut> {
+  async editProfile(data: UserProfileInput, user: User): Promise<UserOutPut> {
     try {
       const { email, name } = data
-      const user = await this.findById(userId)
       if (email) {
-        // input email
         if (name) {
           user.name = name
         }
@@ -112,9 +112,8 @@ export class UserService {
     }
   }
 
-  async deleteUser(userId: number): Promise<CommonOutPut> {
+  async deleteUser(user: User): Promise<CommonOutPut> {
     try {
-      const user = await this.findById(userId)
       if (!user) {
         throw new NotFoundException('USER NOT FOUND')
       }
@@ -123,7 +122,7 @@ export class UserService {
         ok: true
       }
     } catch (error) {
-      throw new NotFoundException(`USER NOT FOUND ID: ${userId}`)
+      throw new NotFoundException(`USER NOT FOUND ID: ${user.id}`)
     }
   }
 }
