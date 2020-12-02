@@ -28,7 +28,7 @@ export class AuthService {
                 }
             }
         } catch (error) {
-            throw new InternalServerErrorException('INTERNAL SERVER EXEPTION')
+            throw new InternalServerErrorException('INTERNAL SERVER ERROR')
         }
     }
 }

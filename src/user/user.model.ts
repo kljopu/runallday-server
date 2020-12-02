@@ -44,7 +44,6 @@ export class User extends BaseModel {
   records: Record[];
 
   @BeforeInsert()
-  @BeforeUpdate()
   async savePassword(): Promise<void> {
     if (this.password) {
       try {

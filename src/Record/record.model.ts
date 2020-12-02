@@ -1,7 +1,7 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, Float } from '@nestjs/graphql';
 import { BaseModel } from '../shared/base.model';
 import { User } from '../user/user.model';
-import { Column, Entity, ManyToOne, RelationId, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne, RelationId, OneToMany, Double } from 'typeorm';
 
 @Entity()
 @ObjectType()
@@ -10,15 +10,28 @@ export class Record extends BaseModel {
   @Field((_) => String)
   runType!: string;
 
-  @Column()
+  @Column({ default: false })
+  @Field((_) => Boolean)
+  isRunning: boolean
+
+  @Column({ default: 0 })
+  @Field((_) => Number)
+  goalDistance: number
+
+  @Column({ default: 0, type: "float4" })
   @Field((_) => Number)
   totalDistance!: number;
 
-  @Column()
-  @Field((_) => Number)
-  totalPace!: number
+  // String으로 고쳐야됨
+  @Column({ default: 0 })
+  @Field((_) => String)
+  totalPace!: string
 
-  @Column()
+  @Column({ nullable: true })
+  @Field((_) => Date)
+  totalTime: Date
+
+  @Column({ default: 0 })
   @Field((_) => Number)
   consumedCalories: number
 
@@ -26,7 +39,7 @@ export class Record extends BaseModel {
     () => User,
     (user) => user.records,
   )
-  @Field((_) => Record)
+  @Field((_) => User)
   runner!: User;
 
   @OneToMany(
@@ -43,17 +56,21 @@ export class Record extends BaseModel {
 @Entity()
 @ObjectType()
 export class RecordsPerKillometer extends BaseModel {
-  @Column({ default: 1 })
+  @Column({ default: 0, type: "float4" })
   @Field((_) => Number)
   distance!: number
 
   @Column()
-  @Field((_) => Date)
-  pace: Date
+  @Field((_) => String)
+  pace: string
 
-  @Column()
-  @Field((_) => Date)
-  difference: Date
+  @Column({ default: 0, type: "float4" })
+  @Field((_) => Number)
+  difference: number
+
+  @Column({ default: true })
+  @Field((_) => Boolean)
+  isImproved: boolean
 
   @ManyToOne(
     () => Record,

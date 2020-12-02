@@ -8,10 +8,13 @@ type Record {
   updatedAt: DateTime!
   deletedAt: DateTime
   runType: String!
+  isRunning: Boolean!
+  goalDistance: Float!
   totalDistance: Float!
-  totalPace: Float!
+  totalPace: String!
+  totalTime: DateTime!
   consumedCalories: Float!
-  runner: Record!
+  runner: User!
   recordPerKm: [RecordsPerKillometer!]!
 }
 
@@ -26,8 +29,9 @@ type RecordsPerKillometer {
   updatedAt: DateTime!
   deletedAt: DateTime
   distance: Float!
-  pace: DateTime!
-  difference: DateTime!
+  pace: String!
+  difference: Float!
+  isImproved: Boolean!
   finalRecord: Record!
 }
 
@@ -65,6 +69,12 @@ type CreateUserOutput {
   ok: Boolean!
 }
 
+type RecordDefaultOutput {
+  error: String
+  ok: Boolean!
+  record: Record!
+}
+
 type Query {
   hello(data: String): String!
 }
@@ -74,6 +84,8 @@ type Mutation {
   getMyProfile: UserOutPut!
   editMyProfile(input: UserProfileInput!): UserOutPut!
   deleteUser: CommonOutPut!
+  startRunning(input: RecordCreateInput!): RecordDefaultOutput!
+  stopRunning(runDetails: [runDetailInput!]!, input: RecordDefaultInput!): RecordDefaultOutput!
   login(input: AuthLoginInput!): AuthLoginOutput!
 }
 
@@ -87,6 +99,28 @@ input CreateUserInput {
 input UserProfileInput {
   email: String
   name: String
+}
+
+input RecordCreateInput {
+  runType: String!
+  goalDistance: Float!
+}
+
+input runDetailInput {
+  distance: Float!
+  pace: String!
+  difference: Float!
+  isImproved: Boolean!
+}
+
+input RecordDefaultInput {
+  id: Float!
+  isRunning: Boolean!
+  totalDistance: Float!
+  totalPace: String!
+  consumedCalories: Float!
+  goalDistance: Float!
+  totalTime: DateTime!
 }
 
 input AuthLoginInput {

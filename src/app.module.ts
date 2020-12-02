@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
-// import { BoardModule } from './Record/record.module';
-// import { BoardService } from './Record/record.service';
+import { RecordModule } from './Record/record.module';
+import { RecordService } from './Record/record.service';
 import { GraphQLModule, GqlModuleOptions } from '@nestjs/graphql';
 import { AppResolver } from './app/app.resolver';
 import { AppService } from './app/app.service';
@@ -12,7 +12,7 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     UserModule,
-    // BoardModule,
+    RecordModule,
     TypeOrmModule.forRoot({
       keepConnectionAlive: true,
       ...typeormConfig,
@@ -52,7 +52,7 @@ import { AuthModule } from './auth/auth.module';
   ],
   providers: [
     AppService,
-    // BoardService,
+    RecordService,
     AppResolver],
 })
 export class AppModule { }
