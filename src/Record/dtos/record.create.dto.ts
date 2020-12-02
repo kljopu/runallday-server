@@ -1,10 +1,10 @@
 import { InputType, Field, ObjectType } from "@nestjs/graphql";
 
 @InputType()
-export class BoardCreateInput {
+export class RecordCreateInput {
     @Field(type => String)
-    title!: string
+    runType!: string
 
-    @Field(type => String)
-    content!: string
+    @Field(type => Number)
+    goalDistance: number
 }
