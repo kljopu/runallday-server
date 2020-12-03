@@ -14,7 +14,7 @@ import { User } from 'src/user/user.model';
 export class RecordResolver {
     constructor(
         private readonly recordService: RecordService,
-        // private readonly userService: UserService
+        private readonly userService: UserService
     ) { }
 
     @UseGuards(JwtAuthGuard)
@@ -37,30 +37,20 @@ export class RecordResolver {
         return this.recordService.stopRunning(user, input, runDetails)
     }
 
-    // @UseGuards(JwtAuthGuard)
-    // @Mutation(returns => RecordDefaultOutput)
-    // async editMyBoard(
-    //     @Args('input') input: BoardEditInput,
-    //     @GqlUser() user: any
-    // ): Promise<RecordDefaultOutput> {
-    //     return await this.boadService.editMyBoard(user.userId, input)
-    // }
+    @UseGuards(JwtAuthGuard)
+    @Mutation(returns => RecordOutput)
+    async getAllRecords(
+        @GqlUser() user: User
+    ): Promise<RecordOutput> {
+        return this.recordService.allRecord(user)
+    }
 
-    // @UseGuards(JwtAuthGuard)
-    // @Mutation(returns => CommonOutPut)
-    // async deleteMyBoard(
-    //     @Args('boardId') boardId: number,
-    //     @GqlUser() user: any
-    // ): Promise<CommonOutPut> {
-    //     return this.boadService.deleteMyBoard(user.userId, boardId)
-    // }
-
-    // @UseGuards(JwtAuthGuard)
-    // @Mutation(returns => RecordOutput)
-    // async getBoards(
-    //     @GqlUser() user: any
-    // ): Promise<RecordOutput> {
-    //     console.log(user);
-    //     return this.boadService.getBoards(user.userId)
-    // }
+    @UseGuards(JwtAuthGuard)
+    @Mutation(returns => CommonOutPut)
+    async deleteRecord(
+        @Args('id') id: number,
+        @GqlUser() user: User
+    ): Promise<CommonOutPut> {
+        return this.recordService.deleteRecord(user, id)
+    }
 }

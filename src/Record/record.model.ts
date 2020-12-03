@@ -45,6 +45,7 @@ export class Record extends BaseModel {
   @OneToMany(
     () => RecordsPerKillometer,
     (recordPerKm) => recordPerKm.finalRecord,
+    { cascade: true }
   )
   @Field((_) => [RecordsPerKillometer])
   recordPerKm!: RecordsPerKillometer[];
