@@ -69,6 +69,10 @@ type CreateUserOutput {
   ok: Boolean!
 }
 
+type RecordOutput {
+  records: [Record!]
+}
+
 type RecordDefaultOutput {
   error: String
   ok: Boolean!
@@ -86,6 +90,8 @@ type Mutation {
   deleteUser: CommonOutPut!
   startRunning(input: RecordCreateInput!): RecordDefaultOutput!
   stopRunning(runDetails: [runDetailInput!]!, input: RecordDefaultInput!): RecordDefaultOutput!
+  getAllRecords: RecordOutput!
+  deleteRecord(id: Float!): CommonOutPut!
   login(input: AuthLoginInput!): AuthLoginOutput!
 }
 
