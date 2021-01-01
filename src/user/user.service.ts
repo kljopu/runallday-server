@@ -156,10 +156,8 @@ export class UserService {
 
   async acceptFollowRequest(user, requestFromUserId): Promise<any> {
     try {
-      console.log(user.name);
       const requsetFromUser = await this.users.findOne(requestFromUserId)
       const follow = await this.follows.findOne({ fromUserId: requestFromUserId, toUserId: user.id })
-      console.log(follow);
       if (follow.toUserId !== user.id) {
         console.log("Unauthorized");
         throw new UnauthorizedException('UNAUTHORIZED REQUEST')
