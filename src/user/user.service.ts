@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserInput, CreateUserOutput } from "./dtos/user-create.dto"
 import { UserProfileInput, UserProfileOutput } from "./dtos/user.profile.dto"
 import { LoginInput, LoginOutput } from "./dtos/login.dto"
-import { User } from './user.model';
+import { User, Follow } from './user.model';
 import { UserOutPut } from 'src/auth/dtos/auth-login.dto';
 import { CommonOutPut } from 'src/shared/dtos/output.dto';
 
@@ -13,6 +13,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly users: Repository<User>,
+    @InjectRepository(Follow)
+    private readonly follows: Repository<Follow>,
   ) {
     console.log('use this repository user', User);
   }
@@ -94,6 +96,7 @@ export class UserService {
     }
   }
 
+  // Profile Update
   async editProfile(data: UserProfileInput, user: User): Promise<UserOutPut> {
     try {
       const { email, name } = data
@@ -112,6 +115,7 @@ export class UserService {
     }
   }
 
+  // User Delete
   async deleteUser(user: User): Promise<CommonOutPut> {
     try {
       if (!user) {
@@ -123,6 +127,54 @@ export class UserService {
       }
     } catch (error) {
       throw new NotFoundException(`USER NOT FOUND ID: ${user.id}`)
+    }
+  }
+
+  // Follow User
+  async followUser(user, requestingUserId: number): Promise<any> {
+    try {
+      if (!requestingUserId) {
+        throw new BadRequestException('INVALID REQUEST')
+      }
+      const requestingUser = await this.users.findOne(requestingUserId)
+      console.log("to: ", requestingUser.name, "from: ", user.name);
+      if (!requestingUser) {
+        console.log('user not found');
+      }
+      const follow = await this.follows.save(
+        this.follows.create({
+          fromUserId: user.id,
+          toUserId: requestingUserId
+        }))
+      return {
+        ok: true
+      }
+    } catch (error) {
+      throw new InternalServerErrorException(error.message)
+    }
+  }
+
+  async acceptFollowRequest(user, requestFromUserId): Promise<any> {
+    try {
+      const requsetFromUser = await this.users.findOne(requestFromUserId)
+      const follow = await this.follows.findOne({ fromUserId: requestFromUserId, toUserId: user.id })
+      if (follow.toUserId !== user.id) {
+        console.log("Unauthorized");
+        throw new UnauthorizedException('UNAUTHORIZED REQUEST')
+      }
+      follow.isAccepted = true
+      this.follows.save(follow).then(r => {
+        console.log(r);
+      })
+      return {
+        ok: true
+      }
+    } catch (error) {
+      console.log(error.message);
+      return {
+        ok: false,
+        erorr: error.message
+      }
     }
   }
 }

@@ -2,7 +2,7 @@ import bcrypt from "bcrypt"
 import { Field, ObjectType, InputType } from '@nestjs/graphql';
 import { Record } from '../Record/record.model';
 import { BaseModel } from '../shared/base.model';
-import { Column, Entity, OneToMany, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { Column, Entity, OneToMany, BeforeInsert, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
 import { IsEmail, IsString } from "class-validator"
 import { InternalServerErrorException } from "@nestjs/common";
 
@@ -63,4 +63,18 @@ export class User extends BaseModel {
       throw new InternalServerErrorException()
     }
   }
+}
+
+@ObjectType()
+@Entity()
+export class Follow extends BaseModel {
+  @Column({ default: false })
+  @Field((_) => Boolean)
+  isAccepted!: boolean;
+
+  @Column({ unique: false })
+  fromUserId: number;
+
+  @Column({ unique: false })
+  toUserId: number;
 }
