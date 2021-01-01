@@ -44,4 +44,22 @@ export class UserResolver {
     ): Promise<CommonOutPut> {
         return this.userService.deleteUser(user)
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Mutation(returns => CommonOutPut)
+    async followRequesting(
+        @GqlUser() user: User,
+        @Args('input') input: number
+    ): Promise<CommonOutPut> {
+        return this.userService.followUser(user, input)
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Mutation(returns => CommonOutPut)
+    async followAccepting(
+        @GqlUser() user: User,
+        @Args('input') input: number
+    ): Promise<CommonOutPut> {
+        return this.userService.acceptFollowRequest(user, input)
+    }
 }

@@ -88,6 +88,8 @@ type Mutation {
   getMyProfile: UserOutPut!
   editMyProfile(input: UserProfileInput!): UserOutPut!
   deleteUser: CommonOutPut!
+  followRequesting(input: Float!): CommonOutPut!
+  followAccepting(input: Float!): CommonOutPut!
   startRunning(input: RecordCreateInput!): RecordDefaultOutput!
   stopRunning(runDetails: [runDetailInput!]!, input: RecordDefaultInput!): RecordDefaultOutput!
   getAllRecords: RecordOutput!

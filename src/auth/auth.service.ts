@@ -28,7 +28,8 @@ export class AuthService {
                 }
             }
         } catch (error) {
-            throw new InternalServerErrorException('INTERNAL SERVER ERROR')
+            console.log(error.message);
+            throw new InternalServerErrorException(error.message)
         }
     }
 }
