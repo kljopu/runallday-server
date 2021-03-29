@@ -1,4 +1,3 @@
-import * as nodemailer from 'nodemailer';
 import {
   Injectable,
   NotFoundException,
