@@ -69,6 +69,11 @@ type CreateUserOutput {
   ok: Boolean!
 }
 
+type VerifyEmailOutput {
+  error: String
+  ok: Boolean!
+}
+
 type RecordOutput {
   records: [Record!]
 }
@@ -76,20 +81,21 @@ type RecordOutput {
 type RecordDefaultOutput {
   error: String
   ok: Boolean!
-  record: Record!
+  record: Record
 }
 
 type Query {
+  getMyProfile: User!
   hello(data: String): String!
 }
 
 type Mutation {
   createUser(input: CreateUserInput!): CreateUserOutput!
-  getMyProfile: UserOutPut!
   editMyProfile(input: UserProfileInput!): UserOutPut!
   deleteUser: CommonOutPut!
   followRequesting(input: Float!): CommonOutPut!
   followAccepting(input: Float!): CommonOutPut!
+  verifyEmail(input: VerifyEmailInput!): VerifyEmailOutput!
   startRunning(input: RecordCreateInput!): RecordDefaultOutput!
   stopRunning(runDetails: [runDetailInput!]!, input: RecordDefaultInput!): RecordDefaultOutput!
   getAllRecords: RecordOutput!
@@ -107,6 +113,10 @@ input CreateUserInput {
 input UserProfileInput {
   email: String
   name: String
+}
+
+input VerifyEmailInput {
+  code: String!
 }
 
 input RecordCreateInput {
@@ -134,4 +144,8 @@ input RecordDefaultInput {
 input AuthLoginInput {
   email: String!
   password: String!
+}
+
+type Subscription {
+  friendStartsRun: User!
 }

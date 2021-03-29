@@ -10,7 +10,7 @@ export class RecordOutput {
 
 @ObjectType()
 export class RecordDefaultOutput extends CommonOutPut {
-    @Field(type => Record)
+    @Field(type => Record, { nullable: true })
     record?: Record
 }
 

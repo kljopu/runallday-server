@@ -1,4 +1,4 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Subscription } from '@nestjs/graphql';
 import { Record, RecordsPerKillometer } from './record.model';
 import { RecordService } from './record.service';
 import { UserService } from 'src/user/user.service';
@@ -9,10 +9,14 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { GqlUser } from 'src/shared/decorator/decorator';
 import { CommonOutPut } from 'src/shared/dtos/output.dto';
 import { User } from 'src/user/user.model';
+import { PubSub } from 'graphql-subscriptions'
 
+
+const pubsub = new PubSub()
 @Resolver(of => Record)
 export class RecordResolver {
     constructor(
+        // private pubsub: PubSub,
         private readonly recordService: RecordService,
         private readonly userService: UserService
     ) { }
@@ -23,8 +27,12 @@ export class RecordResolver {
         @Args('input') input: RecordCreateInput,
         @GqlUser() user: any
     ): Promise<RecordDefaultOutput> {
-        console.log(user);
-        return this.recordService.runStart(user, input)
+        const newRun = await this.recordService.runStart(user, input)
+        const runner = newRun.record.runner
+        await pubsub.publish('friendStartsRun', {
+            friendStartsRun: runner
+        })
+        return newRun
     }
 
     @UseGuards(JwtAuthGuard)
@@ -53,4 +61,26 @@ export class RecordResolver {
     ): Promise<CommonOutPut> {
         return this.recordService.deleteRecord(user, id)
     }
-}
+
+    // {
+    // filter: (
+    //     {userId: User.}
+    // ) => {
+    //     return any
+    // }}
+
+    // @Subscription(returns => User, { name: 'startRun' })
+    // friendStartsRun(
+    //     @Args('input') input: RecordCreateInput,
+    //     @GqlUser() user: User
+    // ) {
+    //     return pubsub.asyncIterator('startRun')
+    // }
+
+    @Subscription(returns => User, {
+        name: 'friendStartsRun'
+    })
+    addFriendStartsRunHandler() {
+        return pubsub.asyncIterator('friendStartsRun')
+    }
+}                

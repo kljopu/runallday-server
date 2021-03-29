@@ -1,3 +1,4 @@
+import { join } from "path"
 import { Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { RecordModule } from './Record/record.module';
@@ -8,7 +9,12 @@ import { AppService } from './app/app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeormConfig } from './shared/util/typeOrmConfig';
 import { AuthModule } from './auth/auth.module';
+import { MailerModule } from "@nestjs-modules/mailer"
+import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter"
+console.log(__dirname);
 
+const path = join(__dirname, '../src/templates')
+console.log(path);
 @Module({
   imports: [
     UserModule,
@@ -16,6 +22,29 @@ import { AuthModule } from './auth/auth.module';
     TypeOrmModule.forRoot({
       keepConnectionAlive: true,
       ...typeormConfig,
+    }),
+    MailerModule.forRootAsync({
+      useFactory: () => ({
+        transport: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: "kylehan101@gmail.com",
+            pass: "Sksskrh5027!"
+          }
+        },
+        defaults: {
+          from: 'kylehan101@gmail.com'
+        },
+        template: {
+          dir: path,
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      })
     }),
     GraphQLModule.forRootAsync({
       useFactory: () => {
@@ -42,6 +71,7 @@ import { AuthModule } from './auth/auth.module';
 
         return {
           context: ({ req }) => ({ req }),
+          installSubscriptionHandlers: true,
           playground: true, // Allow playground in production
           introspection: true, // Allow introspection in production
           ...schemaModuleOptions,
