@@ -7,10 +7,14 @@ import { RecordDefaultOutput, RecordDefaultInput, RecordOutput } from './dtos/re
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/user.model';
 import { CommonOutPut } from 'src/shared/dtos/output.dto';
+import { PubSub } from 'graphql-subscriptions'
+
+const pubsub = new PubSub()
 
 @Injectable()
 export class RecordService {
   constructor(
+    // private pubsub: PubSub,
     @InjectRepository(Record) private readonly records: Repository<Record>,
     @InjectRepository(RecordsPerKillometer) private readonly recordPerkms: Repository<RecordsPerKillometer>,
     @Inject(forwardRef(() => UserService)) private readonly userService: UserService
@@ -30,6 +34,9 @@ export class RecordService {
         })
       )
       console.log(record);
+      await pubsub.publish('friendStartsRun', {
+        friendStartsRun: runner
+      })
       return {
         ok: true,
         record
@@ -86,7 +93,7 @@ export class RecordService {
         )
       })
 
-      record.isRunning = isRunning
+      record.isRunning = false
       record.goalDistance = goalDistance
       record.totalDistance = totalDistance
       record.consumedCalories = consumedCalories
@@ -100,7 +107,11 @@ export class RecordService {
       }
     } catch (error) {
       console.log(error);
-      throw new InternalServerErrorException('INTERNAL SERVER EXEPTION', error.message)
+      return {
+        ok: false,
+        record: null,
+        error: error.response.message
+      }
     }
   }
 
