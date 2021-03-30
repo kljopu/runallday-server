@@ -1,4 +1,4 @@
-import { join } from "path"
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { RecordModule } from './Record/record.module';
@@ -9,11 +9,11 @@ import { AppService } from './app/app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeormConfig } from './shared/util/typeOrmConfig';
 import { AuthModule } from './auth/auth.module';
-import { MailerModule } from "@nestjs-modules/mailer"
-import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter"
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 console.log(__dirname);
 
-const path = join(__dirname, '../src/templates')
+const path = join(__dirname, '../src/templates');
 console.log(path);
 @Module({
   imports: [
@@ -30,12 +30,12 @@ console.log(path);
           port: 587,
           secure: false,
           auth: {
-            user: "kylehan101@gmail.com",
-            pass: "Sksskrh5027!"
-          }
+            user: 'kylehan101@gmail.com',
+            pass: '',
+          },
         },
         defaults: {
-          from: 'kylehan101@gmail.com'
+          from: 'kylehan101@gmail.com',
         },
         template: {
           dir: path,
@@ -44,7 +44,7 @@ console.log(path);
             strict: true,
           },
         },
-      })
+      }),
     }),
     GraphQLModule.forRootAsync({
       useFactory: () => {
@@ -78,11 +78,8 @@ console.log(path);
         };
       },
     }),
-    AuthModule
+    AuthModule,
   ],
-  providers: [
-    AppService,
-    RecordService,
-    AppResolver],
+  providers: [AppService, RecordService, AppResolver],
 })
-export class AppModule { }
+export class AppModule {}

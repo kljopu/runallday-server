@@ -24,7 +24,6 @@ export class UserResolver {
   @UseGuards(JwtAuthGuard)
   @Query((returns) => User)
   getMyProfile(@GqlUser() user: User) {
-    // return this.userService.getProfile(user)
     return user;
   }
 

@@ -1,14 +1,8 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserInput, CreateUserOutput } from './dtos/user-create.dto';
-import { UserProfileInput, UserProfileOutput } from './dtos/user.profile.dto';
+import { UserProfileInput } from './dtos/user.profile.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { User, Follow } from './user.model';
 import { UserOutPut } from 'src/auth/dtos/auth-login.dto';
@@ -16,6 +10,10 @@ import { CommonOutPut } from 'src/shared/dtos/output.dto';
 import { Verification } from './verification.model';
 import { VerifyEmailOutput } from './dtos/verifiy-email.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { InternalServerException } from 'src/global.exceptions/InternalServer.exception';
+import { UnauthorizedException } from 'src/global.exceptions/Unauthorized.exception';
+import { BadRequestException } from 'src/global.exceptions/BadRequest.exception';
+import { NotFoundException } from 'src/global.exceptions/NotFound.exception';
 
 @Injectable()
 export class UserService {
@@ -71,10 +69,7 @@ export class UserService {
         });
       return { ok: true };
     } catch (error) {
-      throw new InternalServerErrorException(
-        'INTERNAL SERVER ERROR',
-        error.message,
-      );
+      throw new InternalServerException();
     }
   }
 
@@ -110,7 +105,7 @@ export class UserService {
       const user: User = await this.users.findOneOrFail({ id });
       return user;
     } catch (error) {
-      throw new InternalServerErrorException('INTERNAL SERVER ERROR');
+      throw new InternalServerException();
     }
   }
 
@@ -125,7 +120,7 @@ export class UserService {
       }
       return user;
     } catch (error) {
-      throw new InternalServerErrorException('INTERNAL SERVER ERROR');
+      throw new InternalServerException();
     }
   }
 
@@ -134,7 +129,7 @@ export class UserService {
     try {
       return { user };
     } catch (error) {
-      throw new InternalServerErrorException('INTERNAL SERVER ERROR');
+      throw new InternalServerException();
     }
   }
 
@@ -148,14 +143,32 @@ export class UserService {
           await this.verifications.save(this.verifications.create({ user }));
         }
         user.email = email;
-        await this.verifications.save(this.verifications.create({ user }));
+        const verification = await this.verifications.save(
+          this.verifications.create({ user }),
+        );
+        this.mailerService
+          .sendMail({
+            to: `${email}`,
+            from: 'runnalldy.com',
+            subject: '',
+            template: 'index',
+            context: {
+              code: `${verification.code}`,
+            },
+          })
+          .then((success) => {
+            console.log(success);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       } else if (name) {
         user.name = name;
       }
       await this.users.save(user);
       return { user };
     } catch (error) {
-      throw new InternalServerErrorException('CAN NOT UPDATE PROFILE');
+      throw new InternalServerException();
     }
   }
 
@@ -163,14 +176,14 @@ export class UserService {
   async deleteUser(user: User): Promise<CommonOutPut> {
     try {
       if (!user) {
-        throw new NotFoundException('USER NOT FOUND');
+        throw new NotFoundException();
       }
       this.users.softDelete(user.id);
       return {
         ok: true,
       };
     } catch (error) {
-      throw new NotFoundException(`USER NOT FOUND ID: ${user.id}`);
+      throw new NotFoundException();
     }
   }
 
@@ -178,7 +191,7 @@ export class UserService {
   async followUser(user, requestingUserId: number): Promise<any> {
     try {
       if (!requestingUserId) {
-        throw new BadRequestException('INVALID REQUEST');
+        throw new BadRequestException();
       }
       const requestingUser = await this.users.findOne(requestingUserId);
       console.log('to: ', requestingUser.name, 'from: ', user.name);
@@ -195,7 +208,7 @@ export class UserService {
         ok: true,
       };
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw new InternalServerException();
     }
   }
 
@@ -207,8 +220,7 @@ export class UserService {
         toUserId: user.id,
       });
       if (follow.toUserId !== user.id) {
-        console.log('Unauthorized');
-        throw new UnauthorizedException('UNAUTHORIZED REQUEST');
+        throw new UnauthorizedException();
       }
       follow.isAccepted = true;
       this.follows.save(follow).then((r) => {

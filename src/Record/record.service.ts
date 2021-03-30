@@ -1,53 +1,68 @@
-import { Injectable, Inject, forwardRef, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Record, RecordsPerKillometer } from './record.model';
-import { RecordCreateInput } from './dtos/record.create.dto';
-import { RecordDefaultOutput, RecordDefaultInput, RecordOutput } from './dtos/record.default.dto';
-import { UserService } from 'src/user/user.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { PubSub } from 'graphql-subscriptions';
 import { User } from 'src/user/user.model';
+import { Record, RecordsPerKillometer } from './record.model';
+import {
+  RecordDefaultOutput,
+  RecordDefaultInput,
+  RecordOutput,
+} from './dtos/record.default.dto';
 import { CommonOutPut } from 'src/shared/dtos/output.dto';
-import { PubSub } from 'graphql-subscriptions'
+import { RecordCreateInput } from './dtos/record.create.dto';
+import { UserService } from 'src/user/user.service';
+import { InternalServerException } from 'src/global.exceptions/InternalServer.exception';
+import { BadRequestException } from 'src/global.exceptions/BadRequest.exception';
+import { NotFoundException } from 'src/global.exceptions/NotFound.exception';
 
-const pubsub = new PubSub()
+const pubsub = new PubSub();
 
 @Injectable()
 export class RecordService {
   constructor(
     // private pubsub: PubSub,
     @InjectRepository(Record) private readonly records: Repository<Record>,
-    @InjectRepository(RecordsPerKillometer) private readonly recordPerkms: Repository<RecordsPerKillometer>,
-    @Inject(forwardRef(() => UserService)) private readonly userService: UserService
+    @InjectRepository(RecordsPerKillometer)
+    private readonly recordPerkms: Repository<RecordsPerKillometer>,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {
     console.log('use this repository Record', Record);
   }
 
-  async runStart(runner: User, data: RecordCreateInput): Promise<RecordDefaultOutput> {
+  async runStart(
+    runner: User,
+    data: RecordCreateInput,
+  ): Promise<RecordDefaultOutput> {
     try {
-      const { runType, goalDistance } = data
+      const { runType, goalDistance } = data;
       const record: Record = await this.records.save(
         this.records.create({
           isRunning: true,
           runType: runType,
           goalDistance: goalDistance,
-          runner
-        })
-      )
+          runner,
+        }),
+      );
       console.log(record);
       await pubsub.publish('friendStartsRun', {
-        friendStartsRun: runner
-      })
+        friendStartsRun: runner,
+      });
       return {
         ok: true,
-        record
-      }
-
+        record,
+      };
     } catch (error) {
-      throw new InternalServerErrorException('INTERNAL SERVER EXEPTION', error.message)
+      throw new InternalServerException();
     }
   }
 
-  async stopRunning(runner: User, data: RecordDefaultInput, detailInput): Promise<RecordDefaultOutput> {
+  async stopRunning(
+    runner: User,
+    data: RecordDefaultInput,
+    detailInput,
+  ): Promise<RecordDefaultOutput> {
     try {
       const {
         id,
@@ -56,31 +71,35 @@ export class RecordService {
         totalDistance,
         consumedCalories,
         totalPace,
-        totalTime } = data
+        totalTime,
+      } = data;
 
       /* validate input */
       // running is not finished exception
       if (isRunning === false) {
-        throw new BadRequestException('RUNNING IS NOT FINISHED')
+        throw new BadRequestException('RUNNING IS NOT FINISHED');
       }
 
       // if "Distance" runtype, totalDistance != goalDistance
       if (goalDistance != totalDistance) {
-        throw new BadRequestException('CHECK DISTANCE')
+        throw new BadRequestException('CHECK DISTANCE');
       }
 
       // find current running
-      const record = await this.records.findOne({ id: id, runner: runner }, { relations: ['recordPerKm'] })
+      const record = await this.records.findOne(
+        { id: id, runner: runner },
+        { relations: ['recordPerKm'] },
+      );
       if (record === undefined) {
-        throw new NotFoundException()
+        throw new NotFoundException();
       }
 
       // record detail create
       detailInput.forEach(async (row, rowIndex) => {
-        const pace = row['pace']
-        const distance = row['distance']
-        const difference = row['difference']
-        const isImproved = row['isImproved']
+        const pace = row['pace'];
+        const distance = row['distance'];
+        const difference = row['difference'];
+        const isImproved = row['isImproved'];
 
         const recordPerKm = await this.recordPerkms.save(
           this.recordPerkms.create({
@@ -89,54 +108,56 @@ export class RecordService {
             pace: pace,
             isImproved: isImproved,
             finalRecord: record,
-          })
-        )
-      })
+          }),
+        );
+      });
 
-      record.isRunning = false
-      record.goalDistance = goalDistance
-      record.totalDistance = totalDistance
-      record.consumedCalories = consumedCalories
-      record.totalPace = totalPace
-      record.totalTime = totalTime
-      this.records.save(record)
+      record.isRunning = false;
+      record.goalDistance = goalDistance;
+      record.totalDistance = totalDistance;
+      record.consumedCalories = consumedCalories;
+      record.totalPace = totalPace;
+      record.totalTime = totalTime;
+      this.records.save(record);
 
       return {
         ok: true,
-        record
-      }
+        record,
+      };
     } catch (error) {
       console.log(error);
       return {
         ok: false,
         record: null,
-        error: error.response.message
-      }
+        error: error.response.message,
+      };
     }
   }
 
-  // redis 
+  // redis
   async allRecord(runner: User): Promise<RecordOutput> {
     try {
-      const records = await this.records.find({ runner: runner })
+      const records = await this.records.find({ runner: runner });
       console.log(records);
-      return { records }
+      return { records };
     } catch (error) {
-      throw new InternalServerErrorException('INTERNAL SERVER ERROR')
+      throw new InternalServerException();
     }
   }
 
   async deleteRecord(runner: User, id: number): Promise<CommonOutPut> {
     try {
-
-      const record = await this.records.findOne({ id: id, runner: runner }, { relations: ["runner"] })
-      this.records.delete(record.id)
+      const record = await this.records.findOne(
+        { id: id, runner: runner },
+        { relations: ['runner'] },
+      );
+      this.records.delete(record.id);
 
       return {
-        ok: true
-      }
+        ok: true,
+      };
     } catch (error) {
-      throw new InternalServerErrorException('INTERNAL SERVER ERROR')
+      throw new InternalServerException();
     }
   }
 }
